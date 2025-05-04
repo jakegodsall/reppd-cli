@@ -1,6 +1,7 @@
 import os
 import json
 import requests
+from models.competency import Competency
 from utils.config import get_config_data
 from utils.exceptions import ConfigurationError
 
@@ -103,6 +104,8 @@ class ReppdClient:
                 retries=1,
                 verify=False,
             )
-            print(response.json())
+            
+            response.raise_for_status()
+            return [Competency(**competency) for competency in response.json()['data']]
         except requests.RequestException as req_err:
             raise RuntimeError(f"Request failed: {req_err}")
