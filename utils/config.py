@@ -9,8 +9,8 @@ def get_config_path() -> str:
 
 def create_config_file(default_data: dict = None) -> str:
     """
-    Create the config file in the ~/.reppd/ directory
-    if not already exists. Returns the path to the file.
+    Create or overwrite the config file in the ~/.reppd/ directory.
+    Returns the path to the file.
     """
     config_path = get_config_path()
     config_dir = config_path.parent
@@ -18,10 +18,11 @@ def create_config_file(default_data: dict = None) -> str:
     # Create the directory if it doesn't exist
     config_dir.mkdir(parents=True, exist_ok=True)
 
-    # Create the file if it doesn't exist
-    if not config_path.exists():
-        default_data = default_data or {"token": ""}
-        config_path.write_text(yaml.dump(default_data))
+    # Set default config if not provided
+    default_data = default_data or None
+
+    # Always write/overwrite the config file
+    config_path.write_text(yaml.dump(default_data))
 
     return config_path
 
@@ -35,3 +36,15 @@ def get_config_data() -> dict:
         return yaml.safe_load(config_path.read_text()) or {}
     except Exception as e:
         raise RuntimeError(f"Failed to load config file: {e}")
+    
+def configure_flow():
+    """
+    The full flow for configuring the application.
+    """
+    email = input("Enter your email: ")
+    password = input("Enter your password: ")
+
+    config_path = create_config_file({
+        "email": email,
+        "password": password
+    })

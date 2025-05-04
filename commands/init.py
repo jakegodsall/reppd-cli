@@ -1,7 +1,7 @@
 from pathlib import Path
 import typer
 
-from utils.config import create_config_file
+from utils.config import create_config_file, configure_flow
 
 
 def run():
@@ -10,13 +10,7 @@ def run():
     """
     typer.echo("Initialising the Reppd CLI")
 
-    username = input("Enter your username: ")
-    password = input("Enter your password: ")
-
-    config_path = create_config_file({
-        "username": username,
-        "password": password
-    })
+    configure_flow()
 
     typer.echo(f"Config file created at: {config_path}")
     
