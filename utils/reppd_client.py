@@ -12,6 +12,7 @@ class ReppdClient:
             "Content-Type": "application/json",
             "Accept": "application/json"
         }
+        self.client.headers.update(self.headers)
 
     @property
     def base_path(self):
@@ -72,13 +73,15 @@ class ReppdClient:
         try:
             if method == 'GET':
                 response = self.client.get(url=endpoint, **kwargs)
-            if method == 'POST':
+            elif method == 'POST':
                 response = self.client.post(url=endpoint, **kwargs)
+            else:
+                raise ValueError(f"Unsupported HTTP method: {method}")
         
             if response.status_code == 401 and retries > 0:
                 print("Unauthorised. Reauthenticating...")
                 self.authenticate()
-                self.make_request_with_reauth(
+                return self.make_request_with_reauth(
                     endpoint,
                     method,
                     retries=retries-1,
@@ -97,9 +100,9 @@ class ReppdClient:
             response = self.make_request_with_reauth(
                 endpoint=endpoint,
                 method='GET',
-                retries=3,
+                retries=1,
                 verify=False,
             )
-            print(response.text)
+            print(response.json())
         except requests.RequestException as req_err:
             raise RuntimeError(f"Request failed: {req_err}")
