@@ -37,8 +37,9 @@ class ReppdClient:
         try:
             response = self.client.post(
                 f"{self.base_path}/login",
-                data=config,
-                headers=self.headers
+                json=config,
+                headers=self.headers,
+                verify=False
             )
 
             response.raise_for_status()
@@ -50,21 +51,55 @@ class ReppdClient:
                 raise ValueError("No token was returned from the response.")
 
             self.client.headers.update({"Authorization": f"Bearer {token}"})
-            print("Authentication successful.")
+            print(f"Authentication successful. Token: {token}")
         except requests.RequestException as req_err:
             raise RuntimeError(f"Request failed: {req_err}")
         except ValueError as val_err:
             raise RuntimeError(f"Unexpected response format: {val_err}")
 
 
-
     def make_request_with_reauth(
             self,
             endpoint: str,
-            retries: int = 1
+            method: str = 'GET',
+            retries: int = 1,
+            **kwargs
         ):
         """
         Make a request to the provided endpoint with
         retries if the session has expired.
         """
-        ...
+        try:
+            if method == 'GET':
+                response = self.client.get(url=endpoint, **kwargs)
+            if method == 'POST':
+                response = self.client.post(url=endpoint, **kwargs)
+        
+            if response.status_code == 401 and retries > 0:
+                print("Unauthorised. Reauthenticating...")
+                self.authenticate()
+                self.make_request_with_reauth(
+                    endpoint,
+                    method,
+                    retries=retries-1,
+                    **kwargs
+                )
+
+            response.raise_for_status()
+            return response
+
+        except requests.RequestException as req_err:
+            raise RuntimeError(f"Request failed: {req_err}")
+        
+    def get_competency_list(self):
+        endpoint = f"{self.base_path}/competencies"
+        try:
+            response = self.make_request_with_reauth(
+                endpoint=endpoint,
+                method='GET',
+                retries=3,
+                verify=False,
+            )
+            print(response.text)
+        except requests.RequestException as req_err:
+            raise RuntimeError(f"Request failed: {req_err}")

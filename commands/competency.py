@@ -10,7 +10,7 @@ reppd_client = ReppdClient()
 @competency_app.command()
 def list():
     try:
-        reppd_client.authenticate()
+        reppd_client.get_competency_list()
     except ConfigurationError as e:
-        print("You must configure the application to begin using it.")
+        print(f"You must configure the application to begin using it. {e}")
         configure_flow()

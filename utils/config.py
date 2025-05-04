@@ -30,7 +30,6 @@ def get_config_data() -> dict:
     """
     Loads YAML config data, or creates a default config if missing.
     """
-    create_config_file()
     config_path = get_config_path()
     try:
         return yaml.safe_load(config_path.read_text()) or {}
